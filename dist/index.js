@@ -1,79 +1,79 @@
-import {OrbitControls} from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js'
 import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
-const canvas = document.querySelector('canvas.webgl')
+import {OrbitControls} from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from "https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js";
 
-// Scene
-const scene = new THREE.Scene()
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, 10000 );
+const loader = new GLTFLoader();
 
-const textureLoader = new THREE.TextureLoader()
-const myTexture = textureLoader.load('coolTex.jpg')
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
 
-// Object
-const geometry = new THREE.BoxGeometry(1,1,1)
-const geometry2 = new THREE.DodecahedronGeometry(0.5,3)
-const material = new THREE.MeshBasicMaterial({
-    map: myTexture
-})
-const boxMesh = new THREE.Mesh(geometry,material)
-const sphereMesh = new THREE.Mesh(geometry2,material)
-scene.add(boxMesh)
-// scene.add(sphereMesh)
-boxMesh.position.x = 0
-boxMesh.position.y = 0.8
-sphereMesh.position.x = -1.6
-sphereMesh.position.y = 0.5
-geometry.center()
-// Sizes
-const sizes = {
-    width:window.innerWidth,
-    height:window.innerHeight
+const controls = new OrbitControls( camera, renderer.domElement );
+camera.position.set( 0, 0, 100 );
+controls.update();
+
+const light = new THREE.AmbientLight( 0x404040 ); // soft white light
+scene.add( light );
+
+const spotLight = new THREE.SpotLight( 0xebc034, 1, 200 );
+spotLight.angle = Math.PI / 6;
+spotLight.penumbra = 1;
+spotLight.decay = 0.2;
+
+spotLight.castShadow = true;
+spotLight.shadow.mapSize.width = 1024;
+spotLight.shadow.mapSize.height = 1024;
+spotLight.shadow.camera.near = 1;
+spotLight.shadow.camera.far = 10;
+spotLight.shadow.focus = 1;
+spotLight.position.set( 100, 50, 100 );
+scene.add( spotLight );
+
+const lightHelper = new THREE.SpotLightHelper( spotLight );
+scene.add( lightHelper );
+
+const axesHelper = new THREE.AxesHelper( 50 );
+scene.add( axesHelper );
+
+loader.load(
+	// resource URL
+	'Walaoweb.glb',
+	// called when the resource is loaded
+	function ( gltf ) {
+
+		scene.add( gltf.scene );
+
+		gltf.animations; // Array<THREE.AnimationClip>
+		gltf.scene; // THREE.Group
+		gltf.scenes; // Array<THREE.Group>
+		gltf.cameras; // Array<THREE.Camera>
+		gltf.asset; // Object
+
+        gltf.scene.lookAt(0,-100,0);
+
+	},
+	// called while loading is progressing
+	function ( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'An error happened' );
+
+	}
+);
+
+function animate() {
+	requestAnimationFrame( animate );
+
+    controls.update();
+
+	renderer.render( scene, camera );
 }
 
-// Renderer gets updated each time window is resized
-window.addEventListener('resize',()=>{
-    sizes.width = window.innerWidth
-    sizes.height = window.innerHeight
-
-    camera.aspect = sizes.width/sizes.height
-    camera.updateProjectionMatrix()
-
-    renderer.setSize(sizes.width,sizes.height)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-    
-})
-
-// Camera
-const camera = new THREE.PerspectiveCamera(75,sizes.width/sizes.height,0.1,100)
-camera.position.z = 3
-scene.add(camera)
-
-// Controls
-const controls = new OrbitControls(camera, canvas)
-
-controls.enableZoom = false;
-controls.enableDamping = true
-
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-    alpha: true,
-})
-renderer.setSize(sizes.width,sizes.height)
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-
-const clock = new THREE.Clock()
-
-const tick = () => {
-    const elapsedTime = clock.getElapsedTime()
-    boxMesh.rotateX(30*0.0003)
-    boxMesh.rotateY(30*0.0003)
-    sphereMesh.rotateY(30*0.0003)
-    // mesh.position.y = Math.sin(elapsedTime) *0.1
-    boxMesh.position.z = Math.sin(elapsedTime) * 1
-
-    controls.update()
-    controls.enableDamping = true
-    renderer.render(scene,camera)
-    window.requestAnimationFrame(tick)
-};
-
-tick()
+animate();
