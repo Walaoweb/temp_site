@@ -1,0 +1,20 @@
+{
+  "name": "threejs-cdn-practice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "mytest -d dist"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "gh-pages": "^3.1.0",
+    "mytest": "^0.0.1",
+    "three": "^0.127.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.28.0"
+  }
+}
